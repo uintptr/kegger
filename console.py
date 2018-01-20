@@ -132,11 +132,14 @@ def display_bar ( bar, level, name ):
     max_y -= 4
     max_x -= 2
     bar.attron  ( color )
+    bar.attron  ( curses.A_BOLD )
 
     for i in range ( 0, ( level * max_y ) / 100 ):
 
         for j in range ( 0, BAR_WIDTH - 2 ):
             bar.addch ( max_y-i, max_x-j, curses.ACS_CKBOARD )
+
+    bar.attroff ( curses.A_BOLD )
     bar.attroff ( color )
 
 def alloc_bar ( win ):
