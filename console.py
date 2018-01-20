@@ -16,17 +16,32 @@ COLOR_BAR_RED       = 3
 COLOR_BAR_YELLOW    = 4
 COLOR_BAR_GREEN     = 5
 
+
 def display_product ( win ):
 
     (max_y, max_x ) = win.getmaxyx()
 
-    ver_str = "Version {}.{}".format ( VERSION_MAJ, VERSION_MIN )
+    ver_str = "Kegger Console {}.{}".format ( VERSION_MAJ, VERSION_MIN )
 
-    middle  = max_x / 2 - len ( ver_str ) / 2
+    middle  = max_x / 2 - ( len ( ver_str ) + 2 ) / 2
+
+    win.move ( 0, middle )
+
+    win.attron  ( curses.color_pair(COLOR_BORDER) )
+    win.addch   ( curses.ACS_RTEE )
+    win.attroff ( curses.color_pair(COLOR_BORDER) )
 
     win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
-    win.addstr  ( 0, middle, ver_str )
+    win.attron  ( curses.A_BOLD )
+
+    win.addstr  ( ver_str )
+
     win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attroff ( curses.A_BOLD )
+
+    win.attron  ( curses.color_pair(COLOR_BORDER) )
+    win.addch   ( curses.ACS_LTEE )
+    win.attroff ( curses.color_pair(COLOR_BORDER) )
 
 def display_url ( win ):
 
@@ -117,7 +132,8 @@ def display_bar ( bar, level, name ):
     max_y -= 4
     max_x -= 2
     bar.attron  ( color )
-    for i in range ( 0, level * max_y / 100 ):
+
+    for i in range ( 0, ( level * max_y ) / 100 ):
 
         for j in range ( 0, BAR_WIDTH - 2 ):
             bar.addch ( max_y-i, max_x-j, curses.ACS_CKBOARD )
@@ -158,6 +174,7 @@ def main():
             win.attron(curses.color_pair(COLOR_BORDER))
             win.border()
             win.attroff(curses.color_pair(COLOR_BORDER))
+
             bar = alloc_bar(win)
 
             bar.attron  ( curses.color_pair(COLOR_BORDER) )
@@ -171,7 +188,7 @@ def main():
 
             display_bar ( bar, level, "test" )
 
-            level += 1
+            level += 5
 
             if ( level > 100 ):
                 level = 0
