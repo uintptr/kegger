@@ -17,11 +17,14 @@ COLOR_BAR_GREEN     = 5
 
 def display_version ( win ):
 
-    ver_str = "Version {}.{}".format ( VERSION_MAJ, VERSION_MIN )
+    ver_str  = "github.com/uintptr/kegger/"
+    ver_str += " Version {}.{}".format ( VERSION_MAJ, VERSION_MIN )
 
     (max_y, max_x ) = win.getmaxyx()
 
-    win.addstr ( max_y - 2, max_x - ( len ( ver_str ) + 2 ) , ver_str )
+    win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.addstr  ( max_y - 2, max_x - ( len ( ver_str ) + 2 ) , ver_str )
+    win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
 def display_temperature( win, temp ):
 
@@ -125,7 +128,7 @@ def main():
             #
             # Always first
             #
-            win.clear()
+            win.erase()
 
             win.attron(curses.color_pair(COLOR_BORDER))
             win.border()
