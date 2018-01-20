@@ -15,9 +15,6 @@ COLOR_BAR_RED       = 3
 COLOR_BAR_YELLOW    = 4
 COLOR_BAR_GREEN     = 5
 
-def display_bar ( level ):
-    pass
-
 def display_version ( win ):
 
     ver_str = "Version {}.{}".format ( VERSION_MAJ, VERSION_MIN )
@@ -40,7 +37,7 @@ def display_temperature( win, temp ):
     win.addstr  ( str ( temp ) )
     win.addch   (curses.ACS_DEGREE )
     win.addstr  ( "C" )
-    win.attroff( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
 def display_humidity ( win, hum ):
 
@@ -54,15 +51,19 @@ def display_humidity ( win, hum ):
 
     win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
     win.addstr  ( "{}%".format ( hum ) )
-    win.attroff( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
 def display_bar ( bar, level, name ):
     #
-    # Not valid
+    # Invalid inputs
     #
     if ( 0 == level or level > 100 ):
+        # Should we raise an exception ?
         return
 
+    #
+    # Select the color
+    #
     if ( level >= 70 ):
         color = curses.color_pair(COLOR_BAR_GREEN )
     elif ( level >= 30 ):
@@ -71,7 +72,6 @@ def display_bar ( bar, level, name ):
         color = curses.color_pair(COLOR_BAR_RED)
 
     (max_y, max_x ) = bar.getmaxyx()
-
 
     bar.attron  ( curses.color_pair(COLOR_BORDER) )
     bar.addch   ( max_y - 3, 0, curses.ACS_LTEE )
@@ -92,23 +92,17 @@ def display_bar ( bar, level, name ):
 
     for i in range ( 0, level * max_y / 100 ):
         bar.attron  ( color )
-        bar.addch ( max_y-i, max_x, curses.ACS_CKBOARD, curses.A_REVERSE )
+        bar.addch ( max_y-i, max_x,   curses.ACS_CKBOARD, curses.A_REVERSE )
         bar.addch ( max_y-i, max_x-1, curses.ACS_CKBOARD, curses.A_REVERSE )
         bar.addch ( max_y-i, max_x-2, curses.ACS_CKBOARD, curses.A_REVERSE )
         bar.addch ( max_y-i, max_x-3, curses.ACS_CKBOARD, curses.A_REVERSE )
         bar.addch ( max_y-i, max_x-4, curses.ACS_CKBOARD, curses.A_REVERSE )
         bar.attroff ( color )
 
-
-    #for i in range ( 0, level ):
-    #    bar.addch ( curses.ACS_CKBOARD )
-
 def alloc_bar ( win ):
 
     (max_y, max_x ) = win.getmaxyx()
-
     h = max_y - 20
-
     return curses.newwin ( h, 7 , 10, max_x / 2 )
 
 def main():
@@ -119,6 +113,7 @@ def main():
     win = curses.initscr()
 
     curses.start_color()
+
     curses.init_pair(COLOR_BORDER,     curses.COLOR_CYAN,   curses.COLOR_BLACK)
     curses.init_pair(COLOR_TEXT_VALUE, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(COLOR_BAR_RED,    curses.COLOR_RED,    curses.COLOR_BLACK)
