@@ -82,9 +82,9 @@ def display_bar ( bar, level, name ):
     #
     # Select the color
     #
-    if ( level >= 70 ):
+    if ( level >= 60 ):
         color = curses.color_pair(COLOR_BAR_GREEN )
-    elif ( level >= 30 ):
+    elif ( level >= 20 ):
         color = curses.color_pair(COLOR_BAR_YELLOW )
     else:
         color = curses.color_pair(COLOR_BAR_RED)
