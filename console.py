@@ -51,7 +51,7 @@ def display_temperature( win, temp ):
     win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
     win.addstr  ( str ( temp ) )
     win.addch   (curses.ACS_DEGREE )
-    win.addstr  ( "C" )
+    win.addstr  ( "C / {}F".format ( ( temp * 1.8 ) + 32 ) )
     win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
 def display_humidity ( win, hum ):
@@ -75,7 +75,7 @@ def display_bar ( bar, level, name ):
     #
     # Invalid inputs
     #
-    if ( 0 == level or level > 100 ):
+    if ( level > 100 or level < 0 ):
         # Should we raise an exception ?
         return
 
@@ -112,7 +112,7 @@ def display_bar ( bar, level, name ):
     bar.attroff ( curses.color_pair(COLOR_TEXT_VALUE ) )
 
     #
-    # Display all the bars
+    # Display the bars
     #
     max_y -= 4
     max_x -= 2
@@ -139,6 +139,9 @@ def main():
 
     curses.start_color()
 
+    #
+    # init the colors so we don't have to use literals throughout the code
+    #
     curses.init_pair(COLOR_BORDER,     curses.COLOR_CYAN,   curses.COLOR_BLACK)
     curses.init_pair(COLOR_TEXT_VALUE, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(COLOR_BAR_RED,    curses.COLOR_RED,    curses.COLOR_BLACK)
@@ -177,12 +180,14 @@ def main():
 
             win.refresh()
             bar.refresh()
+
+            #
+            # We should relay on externals events. Only redisplay
+            # if something's changed ( temp / level / humidity / ... )
+            #
             time.sleep(1)
     except KeyboardInterrupt:
         pass
-    except Exception:
-        curses.endwin()
-        raise
 
     curses.endwin()
 
