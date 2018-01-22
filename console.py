@@ -182,7 +182,7 @@ def display_bar ( bar, level ):
 def alloc_bar ( win ):
 
     (max_y, max_x ) = win.getmaxyx()
-    h = max_y - 10
+    h = max_y - 12
 
     return curses.newwin ( h, BAR_WIDTH, 5, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
 
