@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+
 import sys
+import os
 import curses
 import time
 import locale
+import logging
+import tempfile
+import argparse
+import json
 
 VERSION_MAJ         = 1
 VERSION_MIN         = 0
@@ -86,7 +92,38 @@ def display_humidity ( win, hum ):
     win.addstr  ( "{}%".format ( hum ) )
     win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
-def display_bar ( bar, level, name ):
+def display_bar_info ( win, bar, name, type_str ):
+    corner_x = bar.getbegyx()[1] + 1
+    corner_y = bar.getmaxyx()[0] + 5
+
+    #
+    # Name
+    #
+    win.attron  ( curses.color_pair(COLOR_TEXT_KEY) )
+    win.addstr  ( corner_y, corner_x, "Name:" )
+    win.attroff ( curses.color_pair(COLOR_TEXT_KEY) )
+
+    win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attron  ( curses.A_BOLD )
+    win.addstr  ( corner_y, corner_x + 6, name )
+    win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attroff ( curses.A_BOLD )
+
+    #
+    # Type
+    #
+    win.attron  ( curses.color_pair(COLOR_TEXT_KEY) )
+    win.addstr  ( corner_y + 1, corner_x, "Type:" )
+    win.attroff ( curses.color_pair(COLOR_TEXT_KEY) )
+
+    win.attron  ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attron  ( curses.A_BOLD )
+    win.addstr  ( corner_y + 1, corner_x + 6, type_str)
+    win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
+    win.attroff ( curses.A_BOLD )
+
+
+def display_bar ( bar, level ):
     #
     # Invalid inputs
     #
@@ -149,7 +186,39 @@ def alloc_bar ( win ):
 
     return curses.newwin ( h, BAR_WIDTH, 5, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
 
+def init_logging ():
+
+    log_file = os.path.join ( tempfile.gettempdir(), "kegger_console.log" )
+    logging.basicConfig(filename=log_file,
+                        filemode="a",
+                        level=logging.DEBUG )
+
+def parse_config ( file_path ):
+
+    config_info = {}
+
+    logging.debug ( "reading config file @ {}".format ( file_path ) )
+
+    with open ( file_path, "r" ) as f:
+        config_info = json.load ( f )
+
+    return config_info
+
 def main():
+
+    init_logging()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-c",
+                        "--config",
+                        help="/Where/is/the/config.json",
+                        default="./config.json",
+                        type=str )
+
+    args = parser.parse_args()
+
+    config_file = os.path.abspath ( args.config )
 
     level = 0
 
@@ -169,6 +238,12 @@ def main():
 
     try:
         while ( True ):
+
+            #
+            # Only read the config when it changes
+            #
+            config = parse_config ( config_file )
+
             #
             # Always first
             #
@@ -189,7 +264,8 @@ def main():
             display_humidity(win, 34)
             display_url(win)
 
-            display_bar ( bar, level, "test" )
+            display_bar ( bar, level )
+            display_bar_info ( win, bar, config["name"], config["type"] )
 
             level += 5
 
@@ -207,6 +283,11 @@ def main():
             #
             time.sleep(1)
     except KeyboardInterrupt:
+        #
+        # CTRL+C'ed.
+        #
+        # We leavin'
+        #
         pass
 
     curses.endwin()
