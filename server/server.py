@@ -65,23 +65,49 @@ def http_new_keg():
     if ( full_weight > 0 ):
         uconf.set_full_weight ( full_weight )
 
-    return redirect("/", code=302)
-
-@app.route("/updateconfig", methods=['POST'])
-def http_update_config():
+    root = os.path.dirname( sys.argv[0] )
+    root = os.path.join ( root, "templates" )
 
     uconf = flask.g["user_config"]
 
-    uconf.set_base_weight  ( float ( request.form["base_weight"] ) )
-    uconf.set_empty_weight ( float ( request.form["empty_weight"]) )
-    uconf.set_full_weight  ( float ( request.form["full_weight"] ) )
-    uconf.set_beer_type    ( request.form["beer_type"] )
-    uconf.set_beer_name    ( request.form["beer_name"] )
+    beer_type   = uconf.get_beer_type()
+    beer_name   = uconf.get_beer_name()
+
+    html_file = os.path.join ( root, "newkeg.html" )
+    html_data = None
+
+    with open ( html_file ) as f:
+        html_data = f.read()
+
+        html_data = html_data.replace ( "__BEER_TYPE__", beer_type )
+        html_data = html_data.replace ( "__BEER_NAME__", beer_name )
+
+    return Response ( html_data )
+
+@app.route("/formconfig", methods=['POST'])
+def http_form_config():
+
+    uconf = flask.g["user_config"]
+
+    if ( "base_weight" in request.form ):
+        uconf.set_base_weight  ( float ( request.form["base_weight"] ) )
+
+    if ( "empty_weight" in request.form ):
+        uconf.set_empty_weight ( float ( request.form["empty_weight"]) )
+
+    if ( "full_weight" in request.form ):
+        uconf.set_full_weight( float ( request.form["full_weight"] ) )
+
+    if ( "beer_type" in request.form ):
+        uconf.set_beer_type( request.form["beer_type"] )
+
+    if ( "beer_name" in request.form ):
+        uconf.set_beer_name( request.form["beer_name"] )
 
     return redirect("/", code=302)
 
-@app.route("/update")
-def http_update():
+@app.route("/config")
+def http_config():
 
     root = os.path.dirname( sys.argv[0] )
     root = os.path.join ( root, "templates" )
@@ -94,7 +120,7 @@ def http_update():
     beer_type   = uconf.get_beer_type()
     beer_name   = uconf.get_beer_name()
 
-    html_file = os.path.join ( root, "update.html" )
+    html_file = os.path.join ( root, "config.html" )
     html_data = None
 
     with open ( html_file ) as f:
@@ -109,8 +135,8 @@ def http_update():
 
     return Response ( html_data )
 
-@app.route("/config")
-def http_config():
+@app.route("/api/config")
+def http_api_config():
 
     uconf = flask.g["user_config"]
     json_str = json.dumps ( uconf.get(), indent=4 )

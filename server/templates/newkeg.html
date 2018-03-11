@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>New Keg</title>
+        <meta charset="utf-8">
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1">
+        <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+        <script
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+        </script>
+
+        <script
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+        </script>
+    </head>
+    <body>
+        <h2>New Keg!</h2>
+        <form action="/formconfig" method="post">
+            <table cellspacing="10">
+                <tr>
+                    <td>Beer Type</td>
+                    <td>
+                        <input
+                            type="text"
+                            value="__BEER_TYPE__"
+                            name="beer_type">
+                    </tr>
+                </tr>
+
+                <tr>
+                    <td>Beer Name</td>
+                    <td>
+                        <input
+                            type="text"
+                            value="__BEER_NAME__"
+                            name="beer_name">
+                    </tr>
+                </tr>
+            </table>
+            <button type="submit">Update</button>
+        </form>
+    </body>
+</html>

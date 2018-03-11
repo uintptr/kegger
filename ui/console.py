@@ -213,7 +213,7 @@ def get_config ( server ):
     response = None
 
     while ( None == response ):
-        url = "{}/{}".format ( server, "config" )
+        url = "{}/{}".format ( server, "api/config" )
 
         try:
             response = requests.get ( url )
@@ -238,6 +238,10 @@ def get_level ( config ):
 
     full -= base
     cur  -= base
+
+    # Otherwise we'd divide by 0
+    if ( 0 == full ):
+        return 0
 
     level = 100 * ( cur / full )
 
