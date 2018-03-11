@@ -16,6 +16,9 @@ class Scale():
     def last(self):
         return self.last_sample
 
+    def reset(self):
+        pass
+
     def sample(self):
         logging.debug("sampling")
         self.last_sample = 10
