@@ -24,7 +24,7 @@ else:
 
 import userconfig
 
-LOG_FILE    = "scale.log"
+LOG_FILE    = "server.log"
 VERSION     = "0.1"
 
 #
@@ -150,7 +150,6 @@ def sampler_thread_cb(quit_event, sample_granularity):
 
         else:
             next_sample -= 1
-            logging.debug("Sampling in {}".format ( next_sample ) )
 
         time.sleep ( 1 )
 
@@ -191,14 +190,17 @@ def main():
 
     if ( True == args.verbose ):
         logging.basicConfig(level=logging.DEBUG )
+        log_file = "stdout"
     else:
-        logging.basicConfig(level=logging.DEBUG, filename=LOG_FILE )
+        log_file = os.path.expanduser ( "~/{}".format ( LOG_FILE ) )
+        logging.basicConfig(level=logging.DEBUG, filename=log_file)
 
     print "Scale Server v{0}:".format ( VERSION )
     printkv ( "Debug", args.debug )
     printkv ( "Verbose", args.verbose )
     printkv ( "Listening Port", args.port )
     printkv ( "Sampling Granularity", args.sample_granularity )
+    printkv ( "Log File", log_file )
     print ""
 
     flask.g["user_config"] = userconfig.Config()

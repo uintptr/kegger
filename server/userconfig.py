@@ -88,9 +88,9 @@ class Config():
         self._config["beer_name"] = beer_name
 
     def get_full_weight(self):
-        if ( "base_weight" not in self._config ):
+        if ( "full_weight" not in self._config ):
             return 0
-        return self._config["base_weight" ]
+        return self._config["full_weight" ]
 
     def set_full_weight(self, weight):
         self._config["full_weight" ] = weight
