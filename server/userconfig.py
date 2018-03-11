@@ -32,8 +32,8 @@ class Config():
             self._config["base_weight" ] = 0
             self._config["full_weight" ] = 0
             self._config["current_weight" ] = 0
-            self._config["beer_name"   ] = "Unknown"
-            self._config["beer_type"   ] = "Unknown"
+            self._config["beer_name"   ] = "Guinness"
+            self._config["beer_type"   ] = "Stout"
 
         self._config_file_Path = file_path
 

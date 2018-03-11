@@ -245,6 +245,12 @@ def get_level ( config ):
 
     level = 100 * ( cur / full )
 
+    #
+    # the load cells are not super reliable
+    #
+    if ( level > 100 ):
+        level = 100
+
     return abs ( int ( level ) )
 
 def main():
@@ -266,6 +272,13 @@ def main():
                         type=int )
 
     args = parser.parse_args()
+
+    config = get_config ( args.server )
+
+    #print config
+    #level = get_level ( config )
+    #print level
+    #return
 
     level = 0
 

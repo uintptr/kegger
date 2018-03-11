@@ -41,12 +41,43 @@ def printkv(k,v):
 
 @app.route("/")
 def http_index():
-    return render_template("index.html")
+
+    root = os.path.dirname( sys.argv[0] )
+    root = os.path.join ( root, "templates" )
+
+    conf = flask.g["user_config"].get()
+
+    html_file = os.path.join ( root, "index.html" )
+    html_data = None
+
+    table_str = ''
+
+    for k in conf:
+        table_str += "<tr>"
+
+        pretty_k = k.replace("_", " ").title()
+
+        table_str += "<td>{}</td>".format ( pretty_k )
+
+        table_str += "<td>{}</td>".format ( conf[k] )
+
+        table_str += "</tr>"
+
+    with open ( html_file ) as f:
+        html_data = f.read()
+
+        html_data = html_data.replace ( "__TABLE_DATA__", table_str )
+
+    return Response ( html_data )
 
 @app.route("/reset")
 def http_reset():
     uconf = flask.g["user_config"]
-    s     = flask.g["scale"]
+
+    if ( "scale" not in flask.g ):
+        return
+
+    s = flask.g["scale"]
 
     s.reset()
     uconf.set_base_weight(0)
