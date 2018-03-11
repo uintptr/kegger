@@ -1,2 +1,2 @@
 #!/bin
-$HOME/kegger/script/server.py --sample-granularity 5
+$HOME/kegger/server/server.py --sample-granularity 5
