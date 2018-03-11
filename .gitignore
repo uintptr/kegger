@@ -1,2 +1,7 @@
+# python
+*.pyc
 # vim turds
-*.*swp
+*.swp
+
+/server/scale.log
+/server/config.json

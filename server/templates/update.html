@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Config Page</title>
+        <meta charset="utf-8">
+        <meta 
+            name="viewport" 
+            content="width=device-width, initial-scale=1">
+        <link 
+            rel="stylesheet" 
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+        <script 
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+        </script>
+
+        <script 
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+        </script>
+    </head>
+    <body>
+        <h2>Configuration</h2>
+        <form action="/updateconfig" method="post"> 
+            <table cellspacing="10">
+                <tr>
+                    <td>Base Weight</td>
+                    <td>
+                        <input 
+                            type="text" 
+                            value="__BASE_WEIGHT__",
+                            name="base_weight">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Empty keg weight in pounds</td>
+                    <td>
+                        <input 
+                            type="text" 
+                            value="__EMPTY_WEIGHT__"
+                            name="empty_weight">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Beer Type</td>
+                    <td>
+                        <input 
+                            type="text" 
+                            value="__BEER_TYPE__"
+                            name="beer_type">
+                    </tr>
+                </tr>
+                <tr>
+                    <td>Beer Name</td>
+                    <td>
+                        <input 
+                            type="text" 
+                            value="__BEER_NAME__"
+                            name="beer_name">
+                    </tr>
+                </tr>
+
+            </table>
+            <button type="submit">Update</button>
+        </form>
+    </body>
+</html>
