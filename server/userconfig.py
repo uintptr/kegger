@@ -30,6 +30,10 @@ class Config():
             #
             self._config["empty_weight"] = 14
             self._config["base_weight" ] = 0
+            self._config["full_weight" ] = 0
+            self._config["current_weight" ] = 0
+            self._config["beer_name"   ] = "Unknown"
+            self._config["beer_type"   ] = "Unknown"
 
         self._config_file_Path = file_path
 
@@ -83,6 +87,17 @@ class Config():
     def set_beer_name(self, beer_name ):
         self._config["beer_name"] = beer_name
 
+    def get_full_weight(self):
+        if ( "base_weight" not in self._config ):
+            return 0
+        return self._config["base_weight" ]
+
+    def set_full_weight(self, weight):
+        self._config["full_weight" ] = weight
+
     def get (self):
-        return self._config
+        #
+        # Return a copy
+        #
+        return dict ( self._config )
 

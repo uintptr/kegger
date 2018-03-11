@@ -38,6 +38,10 @@ class Scale():
     def last(self):
         return self.last_sample
 
+    def reset(self):
+        self.hx.reset()
+        self.hx.tare()
+
     def sample(self):
 
         self.hx.power_up()

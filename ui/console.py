@@ -9,6 +9,7 @@ import logging
 import tempfile
 import argparse
 import json
+import requests
 
 VERSION_MAJ         = 1
 VERSION_MIN         = 0
@@ -21,6 +22,8 @@ COLOR_TEXT_VALUE    = 2
 COLOR_BAR_RED       = 3
 COLOR_BAR_YELLOW    = 4
 COLOR_BAR_GREEN     = 5
+
+DEFAULT_SERVER      = "http://127.0.0.1:5000"
 
 
 def display_product ( win ):
@@ -204,21 +207,61 @@ def parse_config ( file_path ):
 
     return config_info
 
+
+def get_config ( server ):
+
+    response = None
+
+    while ( None == response ):
+        url = "{}/{}".format ( server, "config" )
+
+        try:
+            response = requests.get ( url )
+        except requests.exceptions.ConnectionError:
+            pass
+
+        if ( None == response ):
+            time.sleep ( 1 )
+
+    config = json.loads ( response.content )
+
+    return json.loads ( response.content )
+
+def get_level ( config ):
+
+    full = config["full_weight"]
+    base = config["empty_weight"]
+    cur  = config["current_weight"]
+
+    if ( cur > full ):
+        full = cur
+
+    full -= base
+    cur  -= base
+
+    level = 100 * ( cur / full )
+
+    return abs ( int ( level ) )
+
 def main():
 
     init_logging()
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-c",
-                        "--config",
-                        help="/Where/is/the/config.json",
-                        default="./config.json",
+    parser.add_argument("-s",
+                        "--server",
+                        help="Server. Default=".format ( DEFAULT_SERVER ),
+                        default=DEFAULT_SERVER,
                         type=str )
 
-    args = parser.parse_args()
+    parser.add_argument("-u",
+                        "--update-frequency",
+                        help="How often to update the UI",
+                        default=10,
+                        type=int )
 
-    config_file = os.path.abspath ( args.config )
+    args = parser.parse_args()
 
     level = 0
 
@@ -238,11 +281,10 @@ def main():
 
     try:
         while ( True ):
-
             #
             # Only read the config when it changes
             #
-            config = parse_config ( config_file )
+            config = get_config ( args.server )
 
             #
             # Always first
@@ -264,13 +306,13 @@ def main():
             display_humidity(win, 34)
             display_url(win)
 
+            level = get_level ( config )
+
             display_bar ( bar, level )
-            display_bar_info ( win, bar, config["name"], config["type"] )
-
-            level += 5
-
-            if ( level > 100 ):
-                level = 0
+            display_bar_info (  win,
+                                bar,
+                                config["beer_name"],
+                                config["beer_type"] )
 
             curses.curs_set(0)
 
@@ -281,7 +323,7 @@ def main():
             # We should relay on externals events. Only redisplay
             # if something's changed ( temp / level / humidity / ... )
             #
-            time.sleep(1)
+            time.sleep( args.update_frequency )
     except KeyboardInterrupt:
         #
         # CTRL+C'ed.
