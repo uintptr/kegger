@@ -1,2 +1,3 @@
 #!/bin/sh
-$HOME/kegger/server/server.py --sample-granularity 5
+git -C $HOME/kegger/ pull
+$HOME/kegger/server/server.py --sample-granularity 500
