@@ -39,29 +39,80 @@ def printkv(k,v):
     key = "{}:".format ( k )
     print "{0:<22} {1}".format ( key, v )
 
+def get_level ( config ):
+    full = config["full_weight"]
+    base = config["empty_weight"]
+    cur  = config["current_weight"]
+
+    if ( cur > full ):
+        full = cur
+
+    full -= base
+    cur  -= base
+
+    # Otherwise we'd divide by 0
+    if ( 0 == full ):
+        return 0
+
+    level = 100 * ( cur / full )
+
+    logging.debug("level @ {}".format ( level ) )
+
+    #
+    # the load cells are not super reliable
+    #
+    if ( level > 100 ):
+        level = 100
+
+    return abs ( int ( level ) )
+
+
 @app.route("/")
 def http_index():
 
     root = os.path.dirname( sys.argv[0] )
     root = os.path.join ( root, "templates" )
 
-    conf = flask.g["user_config"].get()
+    config = flask.g["user_config"].get()
 
     html_file = os.path.join ( root, "index.html" )
     html_data = None
 
     table_str = ''
 
-    for k in conf:
-        table_str += "<tr>"
+    for k in config:
+        table_str += "<tr>\n"
 
         pretty_k = k.replace("_", " ").title()
 
-        table_str += "<td>{}</td>".format ( pretty_k )
+        table_str += "<td>{}</td>\n".format ( pretty_k )
 
-        table_str += "<td>{}</td>".format ( conf[k] )
+        table_str += "<td>{}</td>\n".format ( config[k] )
 
-        table_str += "</tr>"
+        table_str += "</tr>\n"
+
+    level = get_level ( config )
+
+    if ( level >= 60 ):
+        pbcolor = 'progress-bar-success'
+    elif ( level >= 20 ):
+        pbcolor = 'progress-bar-warning'
+    else:
+        pbcolor = 'progress-bar-danger'
+
+    table_str += "<tr>"
+    table_str += "<td>{}</td>".format ( "Beer Level" )
+    table_str += "<td>\n"
+    table_str += '<div class="progress">\n'
+    table_str += '<div class="progress-bar '
+    table_str += 'progress-bar-striped {0}" '.format ( pbcolor )
+    table_str += 'role="progressbar" style="width: {0}%" '.format ( level )
+    table_str += 'aria-valuenow="{0}" '.format ( level )
+    table_str += 'aria-valuemin="0" aria-valuemax="100">'
+    table_str += '{0}%</div>\n'.format ( level )
+    table_str += '</div>\n'
+    table_str += "</td>"
+    table_str += "</tr>"
 
     with open ( html_file ) as f:
         html_data = f.read()
