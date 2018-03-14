@@ -21,18 +21,39 @@
     <body>
         <div class="container-fluid">
             <div class="btn-group" role="group" aria-label="UI">
-                <a href="/reset"  class="btn btn-danger  btn-lg">Reset Scale</a>
-                <a href="/newkeg" class="btn btn-warning btn-lg">New Keg!</a>
-                <a href="/config" class="btn btn-primary btn-lg">Configure</a>
-                <a href="/api/config" class="btn btn-success btn-lg">API</a>
+                <a href="/reset.html"    class="btn btn-danger  btn-lg">Reset Scale</a>
+                <a href="/api/newkeg"   class="btn btn-warning btn-lg">New Keg!</a>
+                <a href="/config"       class="btn btn-primary btn-lg">Configure</a>
+                <a href="/api/config"   class="btn btn-success btn-lg">API</a>
             </div>
+
+            <br>
+            <br>
 
             <table class="table table-striped">
                 <tbody>
-                    __TABLE_DATA__
+                    {% for entry in config %}
+                    <tr>
+                        <td>{{entry}}</td>
+                        <td>{{config[entry]}}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td>Beer Level</td>
+                        <td>
+                            <div class="progress">
+                                <div
+                                    class="progress-bar progress-bar-striped progress-bar-{{bar_type}}"
+                                    role="progressbar"
+                                    style="width: {{bar_level}}%"
+                                    aria-valuenow="{{bar_level}}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100">{{bar_level}}%</div>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-
         </div>
     </body>
 </html>

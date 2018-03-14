@@ -20,14 +20,14 @@
     </head>
     <body>
         <h2>New Keg!</h2>
-        <form action="/formconfig" method="post">
+        <form action="/formhandler" method="post">
             <table cellspacing="10">
                 <tr>
                     <td>Beer Type</td>
                     <td>
                         <input
                             type="text"
-                            value="__BEER_TYPE__"
+                            value="{{beer_type}}"
                             name="beer_type">
                     </tr>
                 </tr>
@@ -37,7 +37,7 @@
                     <td>
                         <input
                             type="text"
-                            value="__BEER_NAME__"
+                            value="{{beer_name}}"
                             name="beer_name">
                     </tr>
                 </tr>

@@ -13,7 +13,7 @@ class Scale():
     calibration = None
     last_sample = 0
 
-    def __init__(self, dout, pd_sck, calibration=None ):
+    def __init__(self, dout):
 
         logging.debug ( "loading HX711" )
         self.hx = HX711( dout, pd_sck )
@@ -26,10 +26,10 @@ class Scale():
 
         logging.debug("HX711 is ready!")
 
-        if ( None != calibration ):
-            self.calibration = calibration
-        else:
-            self.calibration = self.CALIBRATION
+        self.calibration = self.CALIBRATION
+
+    def calibrate(self, calibration):
+        self.calibration = calibration
 
     def cleanup(self):
         logging.debug ( "Cleaning up" )

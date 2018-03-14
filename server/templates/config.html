@@ -20,14 +20,14 @@
     </head>
     <body>
         <h2>Configuration</h2>
-        <form action="/formconfig" method="post">
+        <form action="/formhandler" method="post">
             <table cellspacing="10">
                 <tr>
                     <td>Base Weight</td>
                     <td>
                         <input
                             type="text"
-                            value="__BASE_WEIGHT__",
+                            value="{{base_weight}}",
                             name="base_weight">
                     </td>
                 </tr>
@@ -36,7 +36,7 @@
                     <td>
                         <input
                             type="text"
-                            value="__EMPTY_WEIGHT__"
+                            value="{{empty_weight}}"
                             name="empty_weight">
                     </td>
                 </tr>
@@ -46,7 +46,7 @@
                     <td>
                         <input
                             type="text"
-                            value="__FULL_WEIGHT__"
+                            value="{{full_weight}}"
                             name="full_weight">
                     </td>
                 </tr>
@@ -56,7 +56,7 @@
                     <td>
                         <input
                             type="text"
-                            value="__BEER_TYPE__"
+                            value="{{beer_type}}"
                             name="beer_type">
                     </tr>
                 </tr>
@@ -66,7 +66,7 @@
                     <td>
                         <input
                             type="text"
-                            value="__BEER_NAME__"
+                            value="{{beer_name}}"
                             name="beer_name">
                     </tr>
                 </tr>

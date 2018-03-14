@@ -11,6 +11,8 @@ import flask
 import json
 
 from flask import Flask, Response, redirect, render_template, request
+from flask import Markup
+from flask import flash
 
 #
 # Assumption:
@@ -40,6 +42,7 @@ def printkv(k,v):
     print "{0:<22} {1}".format ( key, v )
 
 def get_level ( config ):
+
     full = config["full_weight"]
     base = config["empty_weight"]
     cur  = config["current_weight"]
@@ -66,62 +69,30 @@ def get_level ( config ):
 
     return abs ( int ( level ) )
 
-
 @app.route("/")
-def http_index():
-
-    root = os.path.dirname( sys.argv[0] )
-    root = os.path.join ( root, "templates" )
+def html_root():
 
     config = flask.g["user_config"].get()
-
-    html_file = os.path.join ( root, "index.html" )
-    html_data = None
-
-    table_str = ''
-
-    for k in config:
-        table_str += "<tr>\n"
-
-        pretty_k = k.replace("_", " ").title()
-
-        table_str += "<td>{}</td>\n".format ( pretty_k )
-
-        table_str += "<td>{}</td>\n".format ( config[k] )
-
-        table_str += "</tr>\n"
 
     level = get_level ( config )
 
     if ( level >= 60 ):
-        pbcolor = 'progress-bar-success'
+        bar_type = 'success'
     elif ( level >= 20 ):
-        pbcolor = 'progress-bar-warning'
+        bar_type = 'warning'
     else:
-        pbcolor = 'progress-bar-danger'
+        bar_type = 'danger'
 
-    table_str += "<tr>"
-    table_str += "<td>{}</td>".format ( "Beer Level" )
-    table_str += "<td>\n"
-    table_str += '<div class="progress">\n'
-    table_str += '<div class="progress-bar '
-    table_str += 'progress-bar-striped {0}" '.format ( pbcolor )
-    table_str += 'role="progressbar" style="width: {0}%" '.format ( level )
-    table_str += 'aria-valuenow="{0}" '.format ( level )
-    table_str += 'aria-valuemin="0" aria-valuemax="100">'
-    table_str += '{0}%</div>\n'.format ( level )
-    table_str += '</div>\n'
-    table_str += "</td>"
-    table_str += "</tr>"
+    return render_template( "index.html",
+                            config=config,
+                            bar_level=level,
+                            bar_type=bar_type)
 
-    with open ( html_file ) as f:
-        html_data = f.read()
+@app.route("/<path:path>")
+def static_handler(path):
+    return render_template(path)
 
-        html_data = html_data.replace ( "__TABLE_DATA__", table_str )
-
-    return Response ( html_data )
-
-@app.route("/reset")
+@app.route("/api/reset")
 def http_reset():
     uconf = flask.g["user_config"]
 
@@ -136,7 +107,7 @@ def http_reset():
     uconf.set_full_weight(0)
     return redirect("/", code=302)
 
-@app.route("/newkeg")
+@app.route("/api/newkeg")
 def http_new_keg():
 
     scale = flask.g["scale"]
@@ -147,26 +118,11 @@ def http_new_keg():
     if ( full_weight > 0 ):
         uconf.set_full_weight ( full_weight )
 
-    root = os.path.dirname( sys.argv[0] )
-    root = os.path.join ( root, "templates" )
+    return render_template( "newkeg.html",
+                            beer_type=uconf.get_beer_type(),
+                            beer_name=uconf.get_beer_name() )
 
-    uconf = flask.g["user_config"]
-
-    beer_type   = uconf.get_beer_type()
-    beer_name   = uconf.get_beer_name()
-
-    html_file = os.path.join ( root, "newkeg.html" )
-    html_data = None
-
-    with open ( html_file ) as f:
-        html_data = f.read()
-
-        html_data = html_data.replace ( "__BEER_TYPE__", beer_type )
-        html_data = html_data.replace ( "__BEER_NAME__", beer_name )
-
-    return Response ( html_data )
-
-@app.route("/formconfig", methods=['POST'])
+@app.route("/formhandler", methods=['POST'])
 def http_form_config():
 
     uconf = flask.g["user_config"]
@@ -191,38 +147,22 @@ def http_form_config():
 @app.route("/config")
 def http_config():
 
-    root = os.path.dirname( sys.argv[0] )
-    root = os.path.join ( root, "templates" )
-
     uconf = flask.g["user_config"]
 
-    base        = uconf.get_base_weight()
-    empty       = uconf.get_empty_weight()
-    full        = uconf.get_full_weight()
-    beer_type   = uconf.get_beer_type()
-    beer_name   = uconf.get_beer_name()
-
-    html_file = os.path.join ( root, "config.html" )
-    html_data = None
-
-    with open ( html_file ) as f:
-        html_data = f.read()
-
-        html_data = html_data.replace ( "__BASE_WEIGHT__", str(base) )
-        html_data = html_data.replace ( "__EMPTY_WEIGHT__", str ( empty) )
-        html_data = html_data.replace ( "__FULL_WEIGHT__", str ( full ) )
-
-        html_data = html_data.replace ( "__BEER_TYPE__", beer_type )
-        html_data = html_data.replace ( "__BEER_NAME__", beer_name )
-
-    return Response ( html_data )
+    return render_template( "config.html",
+                            base_weight  = uconf.get_base_weight(),
+                            empty_weight = uconf.get_empty_weight(),
+                            full_weight  = uconf.get_full_weight(),
+                            beer_type    = uconf.get_beer_type(),
+                            beer_name    = uconf.get_beer_name() )
 
 @app.route("/api/config")
 def http_api_config():
 
-    uconf = flask.g["user_config"]
-    json_str = json.dumps ( uconf.get(), indent=4 )
-    return Response(json_str, content_type="application/json; charset=utf-8" )
+    conf = flask.g["user_config"].get()
+
+    return Response(json.dumps ( conf, indent=4, sort_keys=True ),
+                    content_type="application/json; charset=utf-8" )
 
 @app.route("/weight")
 def http_weight():
@@ -267,8 +207,6 @@ def sampler_thread_cb(quit_event, sample_granularity):
 
 def main():
 
-    global g_done
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-d",
@@ -309,7 +247,6 @@ def main():
     printkv ( "Listening Port", args.port )
     printkv ( "Sampling Granularity", args.sample_granularity )
     printkv ( "Log File", log_file )
-    print ""
 
     flask.g["user_config"] = userconfig.Config()
 
