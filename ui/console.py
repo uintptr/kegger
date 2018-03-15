@@ -213,7 +213,7 @@ def get_config ( server ):
     response = None
 
     while ( None == response ):
-        url = "{}/{}".format ( server, "api/config" )
+        url = "{}/{}".format ( server, "api/level" )
 
         try:
             response = requests.get ( url )
@@ -223,35 +223,7 @@ def get_config ( server ):
         if ( None == response ):
             time.sleep ( 1 )
 
-    config = json.loads ( response.content )
-
     return json.loads ( response.content )
-
-def get_level ( config ):
-
-    full = config["full_weight"]
-    base = config["empty_weight"]
-    cur  = config["current_weight"]
-
-    if ( cur > full ):
-        full = cur
-
-    full -= base
-    cur  -= base
-
-    # Otherwise we'd divide by 0
-    if ( 0 == full ):
-        return 0
-
-    level = 100 * ( cur / full )
-
-    #
-    # the load cells are not super reliable
-    #
-    if ( level > 100 ):
-        level = 100
-
-    return abs ( int ( level ) )
 
 def main():
 
@@ -273,12 +245,9 @@ def main():
 
     args = parser.parse_args()
 
-    config = get_config ( args.server )
-
+    #config = get_config ( args.server )
     #print config
-    #level = get_level ( config )
-    #print level
-    #return
+    #return 0
 
     level = 0
 
@@ -323,9 +292,8 @@ def main():
             display_humidity(win, 34)
             display_url(win)
 
-            level = get_level ( config )
+            display_bar ( bar,  config["beer_level"] )
 
-            display_bar ( bar, level )
             display_bar_info (  win,
                                 bar,
                                 config["beer_name"],

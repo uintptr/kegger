@@ -92,6 +92,8 @@ def html_root():
 def static_handler(path):
     return render_template(path)
 
+
+
 @app.route("/api/reset")
 def http_reset():
     uconf = flask.g["user_config"]
@@ -155,6 +157,18 @@ def http_config():
                             full_weight  = uconf.get_full_weight(),
                             beer_type    = uconf.get_beer_type(),
                             beer_name    = uconf.get_beer_name() )
+@app.route("/api/level")
+def http_api_level():
+    conf  = flask.g["user_config"].get()
+    level = get_level( conf )
+
+    level_conf = {}
+    level_conf["beer_type" ] = conf["beer_type"]
+    level_conf["beer_name" ] = conf["beer_name"]
+    level_conf["beer_level"] = level
+
+    return Response(json.dumps( level_conf, indent=4, sort_keys=True ),
+                                content_type="application/json; charset=utf-8")
 
 @app.route("/api/config")
 def http_api_config():
