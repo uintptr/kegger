@@ -13,7 +13,7 @@ class Scale():
     calibration = None
     last_sample = 0
 
-    def __init__(self, dout):
+    def __init__(self, dout, pd_sck ):
 
         logging.debug ( "loading HX711" )
         self.hx = HX711( dout, pd_sck )

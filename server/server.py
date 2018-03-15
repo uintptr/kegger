@@ -118,7 +118,7 @@ def http_new_keg():
     if ( full_weight > 0 ):
         uconf.set_full_weight ( full_weight )
 
-    return render_template( "newkeg.html",
+    return render_template( "newkeg_2.html",
                             beer_type=uconf.get_beer_type(),
                             beer_name=uconf.get_beer_name() )
 
