@@ -41,6 +41,7 @@ def printkv(k,v):
     key = "{}:".format ( k )
     print "{0:<22} {1}".format ( key, v )
 
+
 def get_level ( config ):
 
     full = config["full_weight"]
@@ -69,6 +70,9 @@ def get_level ( config ):
 
     return abs ( int ( level ) )
 
+#
+# For the index.html
+#
 @app.route("/")
 def html_root():
 
@@ -88,11 +92,22 @@ def html_root():
                             bar_level=level,
                             bar_type=bar_type)
 
+#
+# All other html files
+#
 @app.route("/<path:path>")
 def static_handler(path):
+
+    uconf = flask.g["user_config"]
+
+    if ( path == "config.html" ):
+        return render_template( "config.html",
+                                base_weight  = uconf.get_base_weight(),
+                                empty_weight = uconf.get_empty_weight(),
+                                full_weight  = uconf.get_full_weighgo2cloud.orgt(),
+                                beer_type    = uconf.get_beer_type(),
+                                beer_name    = uconf.get_beer_name() )
     return render_template(path)
-
-
 
 @app.route("/api/reset")
 def http_reset():
@@ -146,17 +161,6 @@ def http_form_config():
 
     return redirect("/", code=302)
 
-@app.route("/config")
-def http_config():
-
-    uconf = flask.g["user_config"]
-
-    return render_template( "config.html",
-                            base_weight  = uconf.get_base_weight(),
-                            empty_weight = uconf.get_empty_weight(),
-                            full_weight  = uconf.get_full_weight(),
-                            beer_type    = uconf.get_beer_type(),
-                            beer_name    = uconf.get_beer_name() )
 @app.route("/api/level")
 def http_api_level():
     conf  = flask.g["user_config"].get()
@@ -177,17 +181,6 @@ def http_api_config():
 
     return Response(json.dumps ( conf, indent=4, sort_keys=True ),
                     content_type="application/json; charset=utf-8" )
-
-@app.route("/weight")
-def http_weight():
-
-    uconf  = flask.g["user_config"]
-
-    weight = {}
-
-    json_str = json.dumps ( weight, indent=4 )
-
-    return Response(json_str, content_type="application/json; charset=utf-8" )
 
 def sampler_thread_cb(quit_event, sample_granularity):
 
