@@ -16,15 +16,8 @@ from flask import Markup
 from flask import flash
 from flask import jsonify
 
-#
-# Assumption:
-#
-# If we're running on arm, it's probably a raspberry-pi
-#
-if ( 'arm' in platform.machine() ):
-    import scale
-else:
-    import scale_dummy as scale
+import scale
+import temperature
 
 import userconfig
 
@@ -43,6 +36,21 @@ app = Flask(__name__)
 def printkv(k,v):
     key = "{}:".format ( k )
     print "{0:<22} {1}".format ( key, v )
+
+def temperature_sample_locked():
+
+    global g_mutex
+    global g_temp
+
+    #
+    # Serialize the use of the temp sensor
+    #
+    g_mutex.acquire()
+
+    try:
+        g_temp.sample()
+    finally:
+        g_mutex.release()
 
 def scale_weight_locked():
 
@@ -83,7 +91,6 @@ def scale_reset_locked():
         g_scale.reset()
     finally:
         g_mutex.release()
-
 
 def update_weight(config):
 
@@ -222,14 +229,22 @@ def http_form_config():
 def http_api_level():
     config = flask.g["user_config"]
 
+    global g_temp
+
     update_weight(config)
 
+    temperature_sample_locked()
+
     level = get_level( config )
+    temp  = g_temp.get_temperature()
+    humidity = g_temp.get_humidity()
 
     level_conf = {}
-    level_conf["beer_type" ] = config.get_beer_type()
-    level_conf["beer_name" ] = config.get_beer_name()
-    level_conf["beer_level"] = level
+    level_conf["beer_type" ]  = config.get_beer_type()
+    level_conf["beer_name" ]  = config.get_beer_name()
+    level_conf["beer_level"]  = level
+    level_conf["temperature"] = temp
+    level_conf["humidity"]    = humidity
 
     return jsonify(level_conf )
 
@@ -250,6 +265,7 @@ def main():
 
     global g_mutex
     global g_scale
+    global g_temp
 
     parser = argparse.ArgumentParser()
 
@@ -304,6 +320,7 @@ def main():
 
     g_mutex = Lock()
     g_scale = scale.Scale(2,3, config.get_calibration() )
+    g_temp  = temperature.Temperature ( 17 )
 
     try:
         app.run(host  = "0.0.0.0",

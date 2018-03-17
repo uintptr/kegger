@@ -294,8 +294,8 @@ def main():
             win.attroff(curses.color_pair(COLOR_BORDER))
 
             display_product ( win )
-            display_temperature(win, 21)
-            display_humidity(win, 34)
+            display_temperature(win, config["temperature"] )
+            display_humidity(win, config["humidity"] )
             display_url(win)
 
             display_bar ( bar,  config["beer_level"] )
