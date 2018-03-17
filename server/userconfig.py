@@ -7,19 +7,15 @@ import json
 
 class Config():
 
-    CONFIG_FILE_NAME = "config.json"
+    CALIBRATION = -11600.00
 
     _config = None
     _config_file_Path = None
 
-    def __init__(self):
+    def __init__(self, config_file_path ):
 
-        file_path = os.path.dirname ( sys.argv[0] )
-        file_path = os.path.join ( file_path, self.CONFIG_FILE_NAME )
-        file_path = os.path.abspath ( file_path )
-
-        if ( True == os.path.isfile ( file_path ) ):
-            with open ( file_path, "r" ) as f:
+        if ( True == os.path.isfile ( config_file_path  ) ):
+            with open ( config_file_path, "r" ) as f:
                 self._config = json.load ( f )
 
         else:
@@ -34,8 +30,9 @@ class Config():
             self._config["current_weight" ] = 0
             self._config["beer_name"   ] = "Guinness"
             self._config["beer_type"   ] = "Stout"
+            self._config["calibration" ] = self.CALIBRATION
 
-        self._config_file_Path = file_path
+        self._config_file_Path = config_file_path
 
         if ( "current_weight" in self._config ):
             self._config["base_weight" ]    = self._config["current_weight" ]
@@ -78,6 +75,7 @@ class Config():
 
     def set_beer_type(self, beer_type ):
         self._config["beer_type"] = beer_type
+        self._sync()
 
     def get_beer_name(self):
         if ( "beer_name" not in self._config ):
@@ -86,6 +84,7 @@ class Config():
 
     def set_beer_name(self, beer_name ):
         self._config["beer_name"] = beer_name
+        self._sync()
 
     def get_full_weight(self):
         if ( "full_weight" not in self._config ):
@@ -94,6 +93,18 @@ class Config():
 
     def set_full_weight(self, weight):
         self._config["full_weight" ] = weight
+        self._sync()
+
+    def get_calibration(self):
+
+        if ( "calibration" not in self._config ):
+            self._config["calibration"] = self.CALIBRATION
+
+        return self._config["calibration"]
+
+    def set_calibration(self,calibration):
+        self._config["calibration"] = calibration
+        self._sync()
 
     def get (self):
         #

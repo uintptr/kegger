@@ -208,7 +208,7 @@ def parse_config ( file_path ):
     return config_info
 
 
-def get_config ( server ):
+def get_level ( server ):
 
     response = None
 
@@ -240,16 +240,14 @@ def main():
     parser.add_argument("-u",
                         "--update-frequency",
                         help="How often to update the UI",
-                        default=10,
+                        default=300,
                         type=int )
 
     args = parser.parse_args()
 
-    #config = get_config ( args.server )
+    #config = get_level ( args.server )
     #print config
     #return 0
-
-    level = 0
 
     locale.setlocale(locale.LC_ALL, '')
     win = curses.initscr()
@@ -265,12 +263,20 @@ def main():
     curses.init_pair(COLOR_BAR_YELLOW, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.init_pair(COLOR_BAR_GREEN,  curses.COLOR_GREEN,  curses.COLOR_BLACK)
 
+    #
+    # This'll force getting a sample in before everything
+    #
+    next_update = 0
+
     try:
         while ( True ):
             #
             # Only read the config when it changes
             #
-            config = get_config ( args.server )
+
+            if ( next_update <= 0 ):
+                config = get_level ( args.server )
+                next_update = args.update_frequency
 
             #
             # Always first
@@ -308,7 +314,9 @@ def main():
             # We should relay on externals events. Only redisplay
             # if something's changed ( temp / level / humidity / ... )
             #
-            time.sleep( args.update_frequency )
+            time.sleep( 1 )
+            next_update -= 1
+
     except KeyboardInterrupt:
         #
         # CTRL+C'ed.

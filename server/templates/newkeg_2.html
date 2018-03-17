@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>New Keg</title>
+        <title>Kegger</title>
         <meta charset="utf-8">
         <meta
             name="viewport"
@@ -19,30 +19,13 @@
         </script>
     </head>
     <body>
-        <h2>New Keg!</h2>
-        <form action="/formhandler" method="post">
-            <table cellspacing="10">
-                <tr>
-                    <td>Beer Type</td>
-                    <td>
-                        <input
-                            type="text"
-                            value="{{beer_type}}"
-                            name="beer_type">
-                    </tr>
-                </tr>
-
-                <tr>
-                    <td>Beer Name</td>
-                    <td>
-                        <input
-                            type="text"
-                            value="{{beer_name}}"
-                            name="beer_name">
-                    </tr>
-                </tr>
-            </table>
-            <button type="submit">Update</button>
-        </form>
+        <div class="container-fluid">
+            <ol>
+                <li>Place keg on scale</li>
+                <li>
+                    <a href="/api/newkeg" class="btn btn-danger">Weight It</a>
+                </li>
+            </ol>
+        </div>
     </body>
 </html>

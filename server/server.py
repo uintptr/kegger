@@ -3,16 +3,18 @@
 import time
 import sys
 import os
-import threading
 import logging
 import argparse
 import platform
 import flask
 import json
 
+from threading import Lock
+
 from flask import Flask, Response, redirect, render_template, request
 from flask import Markup
 from flask import flash
+from flask import jsonify
 
 #
 # Assumption:
@@ -26,8 +28,9 @@ else:
 
 import userconfig
 
-LOG_FILE    = "server.log"
-VERSION     = "0.1"
+LOG_FILE            = "server.log"
+VERSION             = "0.1"
+CONFIG_FILE_NAME    = "config.json"
 
 #
 # Default values unless specified in the cmd line
@@ -41,22 +44,75 @@ def printkv(k,v):
     key = "{}:".format ( k )
     print "{0:<22} {1}".format ( key, v )
 
+def scale_weight_locked():
+
+    sample = 0
+
+    logging.debug("Sampling..." )
+
+    global g_mutex
+    global g_scale
+
+    #
+    # Serialize the use of the scale
+    #
+    g_mutex.acquire()
+
+    try:
+        sample = g_scale.sample()
+        logging.debug("New Sample: {}".format ( sample ) )
+
+    finally:
+        g_mutex.release()
+
+    return sample
+
+def scale_reset_locked():
+
+    logging.debug("resetting scale" )
+
+    global g_mutex
+    global g_scale
+
+    #
+    # Serialize the use of the scale
+    #
+    g_mutex.acquire()
+
+    try:
+        g_scale.reset()
+    finally:
+        g_mutex.release()
+
+
+def update_weight(config):
+
+    weight = scale_weight_locked()
+    config.set_current_weight(weight)
+    return config.get_current_weight()
 
 def get_level ( config ):
 
-    full = config["full_weight"]
-    base = config["empty_weight"]
-    cur  = config["current_weight"]
+    full  = config.get_full_weight()
+    empty = config.get_empty_weight()
+    cur   = config.get_current_weight()
+
+    logging.debug("full:  {}".format ( full  ) )
+    logging.debug("empty: {}".format ( empty ) )
+    logging.debug("curr:  {}".format ( cur   ) )
 
     if ( cur > full ):
         full = cur
 
-    full -= base
-    cur  -= base
+    full -= empty
+    cur  -= empty
 
     # Otherwise we'd divide by 0
     if ( 0 == full ):
+        logging.debug("divide by 0 exception" )
         return 0
+
+    logging.debug("{}/{}={}".format ( cur, full, cur / full ) )
 
     level = 100 * ( cur / full )
 
@@ -76,7 +132,7 @@ def get_level ( config ):
 @app.route("/")
 def html_root():
 
-    config = flask.g["user_config"].get()
+    config = flask.g["user_config"]
 
     level = get_level ( config )
 
@@ -88,7 +144,7 @@ def html_root():
         bar_type = 'danger'
 
     return render_template( "index.html",
-                            config=config,
+                            config=config.get(),
                             bar_level=level,
                             bar_type=bar_type)
 
@@ -98,121 +154,102 @@ def html_root():
 @app.route("/<path:path>")
 def static_handler(path):
 
-    uconf = flask.g["user_config"]
+    config = flask.g["user_config"]
 
     if ( path == "config.html" ):
         return render_template( "config.html",
-                                base_weight  = uconf.get_base_weight(),
-                                empty_weight = uconf.get_empty_weight(),
-                                full_weight  = uconf.get_full_weighgo2cloud.orgt(),
-                                beer_type    = uconf.get_beer_type(),
-                                beer_name    = uconf.get_beer_name() )
+                                base_weight  = config.get_base_weight(),
+                                empty_weight = config.get_empty_weight(),
+                                full_weight  = config.get_full_weight(),
+                                calibration  = config.get_calibration(),
+                                beer_type    = config.get_beer_type(),
+                                beer_name    = config.get_beer_name() )
     return render_template(path)
 
 @app.route("/api/reset")
 def http_reset():
-    uconf = flask.g["user_config"]
+    config = flask.g["user_config"]
 
-    if ( "scale" not in flask.g ):
-        return
+    config.set_base_weight(0)
+    config.set_current_weight(0)
+    config.set_full_weight(0)
 
-    s = flask.g["scale"]
+    scale_reset_locked()
 
-    s.reset()
-    uconf.set_base_weight(0)
-    uconf.set_current_weight(0)
-    uconf.set_full_weight(0)
-    return redirect("/", code=302)
+    return redirect("/newkeg_2.html", code=302 )
 
 @app.route("/api/newkeg")
 def http_new_keg():
 
-    scale = flask.g["scale"]
-    uconf = flask.g["user_config"]
+    conf = flask.g["user_config"]
 
-    full_weight = scale.sample()
+    full_weight = scale_weight_locked()
 
     if ( full_weight > 0 ):
-        uconf.set_full_weight ( full_weight )
+        conf.set_full_weight    ( full_weight )
+        conf.set_current_weight ( full_weight )
 
-    return render_template( "newkeg_2.html",
-                            beer_type=uconf.get_beer_type(),
-                            beer_name=uconf.get_beer_name() )
+    return render_template( "newkeg_3.html",
+                            beer_type=conf.get_beer_type(),
+                            beer_name=conf.get_beer_name() )
 
 @app.route("/formhandler", methods=['POST'])
 def http_form_config():
 
-    uconf = flask.g["user_config"]
+    config = flask.g["user_config"]
 
     if ( "base_weight" in request.form ):
-        uconf.set_base_weight  ( float ( request.form["base_weight"] ) )
+        config.set_base_weight  ( float ( request.form["base_weight"] ) )
 
     if ( "empty_weight" in request.form ):
-        uconf.set_empty_weight ( float ( request.form["empty_weight"]) )
+        config.set_empty_weight ( float ( request.form["empty_weight"]) )
 
     if ( "full_weight" in request.form ):
-        uconf.set_full_weight( float ( request.form["full_weight"] ) )
+        config.set_full_weight( float ( request.form["full_weight"] ) )
+
+    if ( "calibration" in request.form ):
+        config.set_calibration ( float ( request.form ["calibration"] ) )
 
     if ( "beer_type" in request.form ):
-        uconf.set_beer_type( request.form["beer_type"] )
+        config.set_beer_type( request.form["beer_type"] )
 
     if ( "beer_name" in request.form ):
-        uconf.set_beer_name( request.form["beer_name"] )
+        config.set_beer_name( request.form["beer_name"] )
 
     return redirect("/", code=302)
 
 @app.route("/api/level")
 def http_api_level():
-    conf  = flask.g["user_config"].get()
-    level = get_level( conf )
+    config = flask.g["user_config"]
+
+    update_weight(config)
+
+    level = get_level( config )
 
     level_conf = {}
-    level_conf["beer_type" ] = conf["beer_type"]
-    level_conf["beer_name" ] = conf["beer_name"]
+    level_conf["beer_type" ] = config.get_beer_type()
+    level_conf["beer_name" ] = config.get_beer_name()
     level_conf["beer_level"] = level
 
-    return Response(json.dumps( level_conf, indent=4, sort_keys=True ),
-                                content_type="application/json; charset=utf-8")
+    return jsonify(level_conf )
 
 @app.route("/api/config")
 def http_api_config():
+    return jsonify(flask.g["user_config"].get())
 
-    conf = flask.g["user_config"].get()
+@app.route("/api/weight")
+def http_api_weight():
 
-    return Response(json.dumps ( conf, indent=4, sort_keys=True ),
-                    content_type="application/json; charset=utf-8" )
+    conf  = flask.g["user_config"]
+    weight = {}
+    weight["weight"] = update_weight( conf )
 
-def sampler_thread_cb(quit_event, sample_granularity):
-
-    next_sample = 0
-
-    s = scale.Scale(2,3)
-
-    flask.g["scale"] = s
-
-    config = flask.g["user_config"]
-
-    while ( False == quit_event.wait(1) ):
-
-        if ( 0 == next_sample ):
-            sample = s.sample()
-
-            logging.debug("New Weight @ {}".format ( sample ) )
-
-            config.set_current_weight( sample )
-
-            next_sample = sample_granularity
-
-        else:
-            next_sample -= 1
-
-        time.sleep ( 1 )
-
-    s.cleanup()
-
-    logging.debug ( "Sampling thread is returning..." )
+    return jsonify(weight)
 
 def main():
+
+    global g_mutex
+    global g_scale
 
     parser = argparse.ArgumentParser()
 
@@ -232,10 +269,10 @@ def main():
                         default=DEF_LISTENING_PORT,
     help="Listening port. Default={}".format(DEF_LISTENING_PORT) )
 
-    parser.add_argument("--sample-granularity",
-                        type=int,
-                        default=DEF_SAMPLE_GRAN,
-    help="Weight sampling granularity. Default={}".format(DEF_SAMPLE_GRAN ) )
+    parser.add_argument("-c",
+                        "--config-file",
+                        type=str,
+                        help="/path/to/config.json" )
 
     args = parser.parse_args()
 
@@ -248,28 +285,25 @@ def main():
         log_file = os.path.expanduser ( "~/{}".format ( LOG_FILE ) )
         logging.basicConfig(level=logging.DEBUG, filename=log_file)
 
+    if ( None == args.config_file ):
+        config_file_path = os.path.dirname ( sys.argv[0] )
+        config_file_path = os.path.join ( config_file_path, CONFIG_FILE_NAME )
+        config_file_path = os.path.abspath ( config_file_path )
+
     print "Scale Server v{0}:".format ( VERSION )
+
+    printkv ( "Config File", config_file_path )
     printkv ( "Debug", args.debug )
     printkv ( "Verbose", args.verbose )
     printkv ( "Listening Port", args.port )
-    printkv ( "Sampling Granularity", args.sample_granularity )
     printkv ( "Log File", log_file )
 
-    flask.g["user_config"] = userconfig.Config()
+    config = userconfig.Config( config_file_path )
 
-    logging.debug ( "Starting thread" )
+    flask.g["user_config"] = config
 
-    quit_event = threading.Event()
-
-    st = threading.Thread(  target=sampler_thread_cb,
-                            kwargs=
-                            {
-                                "quit_event"        : quit_event,
-                                'sample_granularity': args.sample_granularity
-                            } )
-
-    st.start()
-
+    g_mutex = Lock()
+    g_scale = scale.Scale(2,3, config.get_calibration() )
 
     try:
         app.run(host  = "0.0.0.0",
@@ -278,12 +312,9 @@ def main():
     except KeyboardInterrupt:
         print "\rKeyboard interrupted. Quitting"
 
+    g_scale.cleanup()
+
     logging.debug ( "Joining sampling thread" )
-
-    quit_event.set()
-
-    st.join()
-
     logging.debug ( "Sampling thread returned" )
 
 if __name__ == '__main__':

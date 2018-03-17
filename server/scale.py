@@ -7,13 +7,11 @@ from hx711py.hx711 import HX711
 
 class Scale():
 
-    CALIBRATION = -11600.00
-
     hx = None
     calibration = None
     last_sample = 0
 
-    def __init__(self, dout, pd_sck ):
+    def __init__(self, dout, pd_sck, calibration ):
 
         logging.debug ( "loading HX711" )
         self.hx = HX711( dout, pd_sck )
@@ -26,21 +24,18 @@ class Scale():
 
         logging.debug("HX711 is ready!")
 
-        self.calibration = self.CALIBRATION
-
-    def calibrate(self, calibration):
         self.calibration = calibration
 
-    def cleanup(self):
-        logging.debug ( "Cleaning up" )
-        GPIO.cleanup()
+        logging.debug("Calibration: {}".format ( self.calibration ) )
 
-    def last(self):
-        return self.last_sample
 
     def reset(self):
         self.hx.reset()
         self.hx.tare()
+
+    def cleanup(self):
+        logging.debug ( "Cleaning up" )
+        GPIO.cleanup()
 
     def sample(self):
 

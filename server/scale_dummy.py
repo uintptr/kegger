@@ -5,10 +5,13 @@ import logging
 class Scale():
 
     last_sample = 0
+    CALIBRATION = -11600.00
 
-    def __init__(self, dout, pd_sck, calibration=None ):
+    def __init__(self, dout, pd_sck, calibration=CALIBRATION ):
         logging.debug("Loading HX711")
-        pass
+
+        self.calibration = calibration
+        logging.debug("Calibration: {}".format ( self.calibration ) )
 
     def cleanup(self):
         logging.debug("cleaning up")
