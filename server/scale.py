@@ -9,7 +9,6 @@ class Scale():
 
     hx = None
     calibration = None
-    last_sample = 0
 
     def __init__(self, dout, pd_sck, calibration ):
 
@@ -48,9 +47,6 @@ class Scale():
 
         logging.debug ( "calibrated: {}".format ( val ) )
 
-
         self.hx.power_down()
-
-        self.last_sample = val
 
         return val

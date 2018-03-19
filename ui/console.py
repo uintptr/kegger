@@ -16,6 +16,8 @@ VERSION_MIN         = 0
 
 BAR_WIDTH           = 20
 
+REFRESH_DELAY_SEC   = 5
+
 COLOR_BORDER        = 1
 COLOR_TEXT_KEY      = 1
 COLOR_TEXT_VALUE    = 2
@@ -314,8 +316,8 @@ def main():
             # We should relay on externals events. Only redisplay
             # if something's changed ( temp / level / humidity / ... )
             #
-            time.sleep( 1 )
-            next_update -= 1
+            time.sleep( REFRESH_DELAY_SEC )
+            next_update -= REFRESH_DELAY_SEC
 
     except KeyboardInterrupt:
         #
