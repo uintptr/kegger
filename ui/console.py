@@ -98,8 +98,8 @@ def display_humidity ( win, hum ):
     win.attroff ( curses.color_pair(COLOR_TEXT_VALUE) )
 
 def display_bar_info ( win, bar, name, type_str ):
-    corner_x = bar.getbegyx()[1] + 1
-    corner_y = bar.getmaxyx()[0] + 2
+    corner_x = bar.getbegyx()[1] + 0
+    corner_y = bar.getmaxyx()[0] + 1
 
     #
     # Name
@@ -187,9 +187,9 @@ def display_bar ( bar, level ):
 def alloc_bar ( win ):
 
     (max_y, max_x ) = win.getmaxyx()
-    h = max_y - 8
+    h = max_y - 6
 
-    return curses.newwin ( h, BAR_WIDTH, 2, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
+    return curses.newwin ( h, BAR_WIDTH, 1, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
 
 def init_logging ():
 
