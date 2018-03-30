@@ -14,7 +14,7 @@ import requests
 VERSION_MAJ         = 1
 VERSION_MIN         = 0
 
-BAR_WIDTH           = 20
+BAR_WIDTH           = 15
 
 REFRESH_DELAY_SEC   = 5
 
@@ -99,7 +99,7 @@ def display_humidity ( win, hum ):
 
 def display_bar_info ( win, bar, name, type_str ):
     corner_x = bar.getbegyx()[1] + 1
-    corner_y = bar.getmaxyx()[0] + 5
+    corner_y = bar.getmaxyx()[0] + 2
 
     #
     # Name
@@ -187,9 +187,9 @@ def display_bar ( bar, level ):
 def alloc_bar ( win ):
 
     (max_y, max_x ) = win.getmaxyx()
-    h = max_y - 12
+    h = max_y - 8
 
-    return curses.newwin ( h, BAR_WIDTH, 5, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
+    return curses.newwin ( h, BAR_WIDTH, 2, ( max_x / 2 ) - ( BAR_WIDTH/ 2 ) )
 
 def init_logging ():
 
@@ -272,10 +272,10 @@ def main():
 
     try:
         while ( True ):
+
             #
             # Only read the config when it changes
             #
-
             if ( next_update <= 0 ):
                 config = get_level ( args.server )
                 next_update = args.update_frequency
