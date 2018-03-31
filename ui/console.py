@@ -255,6 +255,7 @@ def main():
     win = curses.initscr()
 
     curses.start_color()
+    curses.curs_set(0)
 
     #
     # init the colors so we don't have to use literals throughout the code
