@@ -8,6 +8,7 @@ import argparse
 import platform
 import flask
 import json
+import serial
 
 from threading import Lock
 
@@ -25,8 +26,9 @@ CONFIG_FILE_NAME    = "config.json"
 #
 # Default values unless specified in the cmd line
 #
-DEF_SAMPLE_GRAN     = 300
-DEF_LISTENING_PORT  = 5000
+DEF_SAMPLE_GRAN             = 300
+DEF_LISTENING_PORT          = 5000
+DEF_SAMPLING_TIMEOUT_SEC    = 30
 
 app = Flask(__name__)
 
@@ -48,7 +50,7 @@ def sample_locked(timeout):
         #
         # The loop breaks after a timeout or a
         #
-        while ( timeout > time.time() )
+        while ( timeout > time.time() ):
 
             line = sp.readline()
 
@@ -77,7 +79,7 @@ def sample_locked(timeout):
 
     return (temp,humidity,weight)
 
-def sample(timeout=SAMPLING_TIMEOUT)
+def sample(timeout=DEF_SAMPLING_TIMEOUT_SEC):
 
     temp     = 0
     humidity = 0
@@ -89,13 +91,13 @@ def sample(timeout=SAMPLING_TIMEOUT)
     g_mutex.acquire()
 
     try:
-        (temp,humidity,weight) = sample_locked()
+        (temp,humidity,weight) = sample_locked(timeout)
     finally:
         g_mutex.release()
 
     return (temp,humidity,weight)
 
-def sample_weight()
+def update_config(config):
 
     temp        = 0
     humidity    = 0
@@ -103,19 +105,16 @@ def sample_weight()
 
     (temp,humidity,weight) = sample()
 
-    return weight
-
-def update_weight(config):
-
-    weight = scale_weight_locked()
-    config.set_current_weight(weight)
-    return config.get_current_weight()
+    if ( 0 != temp and 0 != humidity and 0 != weight ):
+        config.set_weight(weight)
+        config.set_temperature(temp)
+        config.set_humidity(humidity)
 
 def get_level ( config ):
 
     full  = config.get_full_weight()
-    empty = config.get_empty_weight()
-    cur   = config.get_current_weight()
+    empty = config.get_keg_weight()
+    cur   = config.get_weight()
 
     logging.debug("full:  {}".format ( full  ) )
     logging.debug("empty: {}".format ( empty ) )
@@ -164,7 +163,7 @@ def html_root():
         bar_type = 'danger'
 
     return render_template( "index.html",
-                            config=config.get(),
+                            config=config.dup(),
                             bar_level=level,
                             bar_type=bar_type)
 
@@ -178,9 +177,7 @@ def static_handler(path):
 
     if ( path == "config.html" ):
         return render_template( "config.html",
-                                base_weight  = config.get_base_weight(),
-                                empty_weight = config.get_empty_weight(),
-                                full_weight  = config.get_full_weight(),
+                                empty_weight = config.get_keg_weight(),
                                 calibration  = config.get_calibration(),
                                 beer_type    = config.get_beer_type(),
                                 beer_name    = config.get_beer_name() )
@@ -190,42 +187,49 @@ def static_handler(path):
 def http_reset():
     config = flask.g["user_config"]
 
+    temp        = 0
+    humidity    = 0
+    weight      = 0
+
     config.set_base_weight(0)
-    config.set_current_weight(0)
+    config.set_weight(0)
     config.set_full_weight(0)
 
-    scale_reset_locked()
+    (temp,humidity,weight) = sample()
+
+    config.set_temperature(temp)
+    config.set_humidity(humidity)
+    config.set_base_weight(weight)
 
     return redirect("/newkeg_2.html", code=302 )
 
 @app.route("/api/newkeg")
 def http_new_keg():
 
-    conf = flask.g["user_config"]
+    config = flask.g["user_config"]
 
-    full_weight = scale_weight_locked()
+    temp        = 0
+    humidity    = 0
+    weight      = 0
 
-    if ( full_weight > 0 ):
-        conf.set_full_weight    ( full_weight )
-        conf.set_current_weight ( full_weight )
+    (temp,humidity,weight) = sample()
+
+    config.set_temperature(temp)
+    config.set_humidity(humidity)
+    config.set_full_weight(weight)
+    config.set_weight(weight)
 
     return render_template( "newkeg_3.html",
-                            beer_type=conf.get_beer_type(),
-                            beer_name=conf.get_beer_name() )
+                            beer_type=config.get_beer_type(),
+                            beer_name=config.get_beer_name() )
 
 @app.route("/formhandler", methods=['POST'])
 def http_form_config():
 
     config = flask.g["user_config"]
 
-    if ( "base_weight" in request.form ):
-        config.set_base_weight  ( float ( request.form["base_weight"] ) )
-
     if ( "empty_weight" in request.form ):
-        config.set_empty_weight ( float ( request.form["empty_weight"]) )
-
-    if ( "full_weight" in request.form ):
-        config.set_full_weight( float ( request.form["full_weight"] ) )
+        config.set_keg_weight ( float ( request.form["empty_weight"]) )
 
     if ( "calibration" in request.form ):
         config.set_calibration ( float ( request.form ["calibration"] ) )
@@ -242,43 +246,37 @@ def http_form_config():
 def http_api_level():
     config = flask.g["user_config"]
 
-    global g_temp
-
-    update_weight(config)
-
-    temperature_sample_locked()
+    update_config(config)
 
     level = get_level( config )
-    temp  = g_temp.get_temperature()
-    humidity = g_temp.get_humidity()
 
     level_conf = {}
     level_conf["beer_type" ]  = config.get_beer_type()
     level_conf["beer_name" ]  = config.get_beer_name()
     level_conf["beer_level"]  = level
-    level_conf["temperature"] = temp
-    level_conf["humidity"]    = humidity
+    level_conf["temperature"] = config.get_temperature()
+    level_conf["humidity"]    = config.get_humidity()
 
     return jsonify(level_conf )
 
 @app.route("/api/config")
 def http_api_config():
-    return jsonify(flask.g["user_config"].get())
+    return jsonify(flask.g["user_config"].dup())
 
 @app.route("/api/weight")
 def http_api_weight():
 
-    conf  = flask.g["user_config"]
+    config = flask.g["user_config"]
+    update_config( config )
+
     weight = {}
-    weight["weight"] = update_weight( conf )
+    weight["weight"] = config.get_weight()
 
     return jsonify(weight)
 
 def main():
 
     global g_mutex
-    global g_scale
-    global g_temp
 
     parser = argparse.ArgumentParser()
 
@@ -332,8 +330,6 @@ def main():
     flask.g["user_config"] = config
 
     g_mutex = Lock()
-    g_scale = scale.Scale(2,3, config.get_calibration() )
-    g_temp  = temperature.Temperature ( 17 )
 
     try:
         app.run(host  = "0.0.0.0",
@@ -342,7 +338,6 @@ def main():
     except KeyboardInterrupt:
         print "\rKeyboard interrupted. Quitting"
 
-    g_scale.cleanup()
 
     logging.debug ( "Joining sampling thread" )
     logging.debug ( "Sampling thread returned" )
