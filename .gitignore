@@ -7,3 +7,4 @@
 /server/config.json
 
 /ino/lib/.holder
+/ino/.build/
