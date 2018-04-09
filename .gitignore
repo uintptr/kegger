@@ -5,3 +5,5 @@
 
 /server/scale.log
 /server/config.json
+
+/ino/lib/.holder
