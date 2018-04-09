@@ -6,6 +6,7 @@
 #define SCALE_CLOCK             4
 
 #define LOOP_GRANULARITY_MS     1000
+#define SCALE_SAMPLE_SIZE       20
 
 static DHT      dht(DHT_PIN, DHT11);
 static HX711    scale(SCALE_DOUT, SCALE_CLOCK);
@@ -27,23 +28,14 @@ void setup()
 
 void loop()
 {
-    Serial.println("D:Sampling temperature");
     g_fTemperature  = dht.readTemperature();
     g_fHumidity     = dht.readHumidity();
 
-    Serial.println("D:Sampling Scale");
     scale.power_up();
 
-    g_fWeight = scale.read_average(20);
+    g_fWeight = scale.read_average(SCALE_SAMPLE_SIZE);
 
     scale.power_down();
-
-    Serial.print("D:");
-    Serial.print(g_fTemperature);
-    Serial.print(",");
-    Serial.print(g_fHumidity);
-    Serial.print(",");
-    Serial.println(g_fWeight);
 
     //
     // Have to cast and compare against 0 because of NaN

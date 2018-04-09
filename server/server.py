@@ -99,10 +99,6 @@ def sample(timeout=DEF_SAMPLING_TIMEOUT_SEC):
 
 def update_config(config):
 
-    temp        = 0
-    humidity    = 0
-    weight      = 0
-
     (temp,humidity,weight) = sample()
 
     if ( 0 != temp and 0 != humidity and 0 != weight ):
@@ -187,19 +183,21 @@ def static_handler(path):
 def http_reset():
     config = flask.g["user_config"]
 
-    temp        = 0
-    humidity    = 0
-    weight      = 0
-
     config.set_base_weight(0)
     config.set_weight(0)
     config.set_full_weight(0)
 
+    #
+    # Leave the scale time to adjust
+    #
+    time.sleep(5)
+
     (temp,humidity,weight) = sample()
 
-    config.set_temperature(temp)
-    config.set_humidity(humidity)
-    config.set_base_weight(weight)
+    if ( 0 != temp and 0 != humidity and 0 != weight ):
+        config.set_temperature(temp)
+        config.set_humidity(humidity)
+        config.set_base_weight(weight)
 
     return redirect("/newkeg_2.html", code=302 )
 
@@ -208,16 +206,18 @@ def http_new_keg():
 
     config = flask.g["user_config"]
 
-    temp        = 0
-    humidity    = 0
-    weight      = 0
+    #
+    # Leave the scale time to adjust
+    #
+    time.sleep(5)
 
     (temp,humidity,weight) = sample()
 
-    config.set_temperature(temp)
-    config.set_humidity(humidity)
-    config.set_full_weight(weight)
-    config.set_weight(weight)
+    if ( 0 != temp and 0 != humidity and 0 != weight ):
+        config.set_temperature(temp)
+        config.set_humidity(humidity)
+        config.set_full_weight(weight)
+        config.set_weight(weight)
 
     return render_template( "newkeg_3.html",
                             beer_type=config.get_beer_type(),

@@ -24,7 +24,6 @@ class Config():
             # https://en.wikipedia.org/wiki/Keg#Sixth_barrel
             #
             self._config["keg_weight"]      = 14
-            self._config["boot_weight" ]    = 0
             self._config["full_weight" ]    = 0
             self._config["weight" ]         = 0
             self._config["beer_name"   ]    = "Guinness"
@@ -32,10 +31,6 @@ class Config():
             self._config["calibration" ]    = self.CALIBRATION
 
         self._config_file_Path = config_file_path
-
-        if ( "weight" in self._config ):
-            self._config["boot_weight" ]    = self._config["weight" ]
-            self._config["weight" ] = 0
 
     def _sync (self):
         with open ( self._config_file_Path, "w+" ) as f:
