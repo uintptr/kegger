@@ -10,10 +10,10 @@ ino build
 ino upload
 ```
 
-## Flash arduino boot lader
+## Flash arduino boot loader
 
 | New Arduino | Working Arduino |
---- | --- | 
+| --- | --- |
 | pin 1 | D12 |
 | pin 2 | 5V  |
 | pin 3 | D13 |
