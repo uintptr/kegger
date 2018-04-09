@@ -16,9 +16,6 @@ from flask import Markup
 from flask import flash
 from flask import jsonify
 
-import scale
-import temperature
-
 import userconfig
 
 LOG_FILE            = "server.log"
@@ -37,60 +34,76 @@ def printkv(k,v):
     key = "{}:".format ( k )
     print "{0:<22} {1}".format ( key, v )
 
-def temperature_sample_locked():
+def sample_locked(timeout):
 
-    global g_mutex
-    global g_temp
+    sp       = None
+    timeout += time.time()
+    temp     = 0
+    humidity = 0
+    weight   = 0
+
+    try:
+        sp = serial.Serial ( "/dev/ttyUSB0", 9600 )
+
+        #
+        # The loop breaks after a timeout or a
+        #
+        while ( timeout > time.time() )
+
+            line = sp.readline()
+
+            if ( None != line ):
+
+                line = line.strip("\r\n")
+
+                print line
+
+                #
+                # When the line starts with D, we treat it as a debug line
+                #
+                if ( False == line.startswith("D") ):
+                    (temp,humidity,weight) = line.split(",")
+                    temp        = float(temp)
+                    humidity    = float(humidity)
+                    weight      = float(weight)
+                    break
+    except KeyboardInterrupt:
+        temp = humidity = weight = 0
+    except serial.SerialException:
+        temp = humidity = weight = 0
+    finally:
+        if ( None != sp ):
+            sp.close()
+
+    return (temp,humidity,weight)
+
+def sample(timeout=SAMPLING_TIMEOUT)
+
+    temp     = 0
+    humidity = 0
+    weight   = 0
 
     #
-    # Serialize the use of the temp sensor
+    # Serialize the use of the serial port
     #
     g_mutex.acquire()
 
     try:
-        g_temp.sample()
+        (temp,humidity,weight) = sample_locked()
     finally:
         g_mutex.release()
 
-def scale_weight_locked():
+    return (temp,humidity,weight)
 
-    sample = 0
+def sample_weight()
 
-    logging.debug("Sampling..." )
+    temp        = 0
+    humidity    = 0
+    weight      = 0
 
-    global g_mutex
-    global g_scale
+    (temp,humidity,weight) = sample()
 
-    #
-    # Serialize the use of the scale
-    #
-    g_mutex.acquire()
-
-    try:
-        sample = g_scale.sample()
-        logging.debug("New Sample: {}".format ( sample ) )
-
-    finally:
-        g_mutex.release()
-
-    return sample
-
-def scale_reset_locked():
-
-    logging.debug("resetting scale" )
-
-    global g_mutex
-    global g_scale
-
-    #
-    # Serialize the use of the scale
-    #
-    g_mutex.acquire()
-
-    try:
-        g_scale.reset()
-    finally:
-        g_mutex.release()
+    return weight
 
 def update_weight(config):
 
