@@ -1,0 +1,14 @@
+#!/bin/sh
+
+#xterm
+#exit 0
+
+xscreensaver -no-splash&
+
+while(true)
+do
+    xterm -e "/home/pi/kegger/ui/console.py -u 30"
+    reset
+    echo "KEG Console crashed. Restarting in 10 seconds"
+    sleep 10
+done

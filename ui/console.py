@@ -26,7 +26,12 @@ COLOR_BAR_YELLOW    = 4
 COLOR_BAR_GREEN     = 5
 
 DEFAULT_SERVER      = "http://127.0.0.1:5000"
+DEFAULT_SAMPLE_SEC  = 30
+DEFAULT_START_DELAY = 5
 
+def printkv(k,v):
+    key = "{}:".format ( k )
+    print "{0:<22} {1}".format ( key, v )
 
 def display_product ( win ):
 
@@ -229,6 +234,8 @@ def get_level ( server ):
 
 def main():
 
+    start_delay = DEFAULT_START_DELAY
+
     init_logging()
 
     parser = argparse.ArgumentParser()
@@ -241,11 +248,21 @@ def main():
 
     parser.add_argument("-u",
                         "--update-frequency",
-                        help="How often to update the UI",
-                        default=300,
+                        help="How often to update the UI. Default={}".format(DEFAULT_SAMPLE_SEC),
+                        default=DEFAULT_SAMPLE_SEC,
                         type=int )
 
     args = parser.parse_args()
+
+    print "Kegger UI V{}.{}".format(VERSION_MAJ, VERSION_MIN)
+    printkv("Server Address", args.server )
+    printkv("Update Frequency", args.update_frequency)
+
+    print ""
+    while ( 0 != start_delay ):
+        print "Starting in {} seconds".format(start_delay)
+        time.sleep(1)
+        start_delay -= 1
 
     #config = get_level ( args.server )
     #print config
