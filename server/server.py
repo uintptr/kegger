@@ -322,7 +322,7 @@ def main():
         log_file = "stdout"
     else:
         log_file = os.path.expanduser ( "~/{}".format ( LOG_FILE ) )
-        logging.basicConfig(level=logging.DEBUG, filename=log_file)
+        logging.basicConfig(level=logging.ERROR, filename=log_file)
 
     if ( None == args.config_file ):
         config_file_path = os.path.dirname ( sys.argv[0] )
