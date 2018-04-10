@@ -1,3 +1,11 @@
 #!/bin/sh
 git -C $HOME/kegger/ pull
-$HOME/kegger/server/server.py
+
+#
+# Harness for the server
+#
+while(true)
+do
+    $HOME/kegger/server/server.py
+    sleep 10
+done
