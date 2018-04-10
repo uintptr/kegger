@@ -5,16 +5,12 @@ import sys
 import os
 import logging
 import argparse
-import platform
 import flask
-import json
 import serial
 
 from threading import Lock
 
-from flask import Flask, Response, redirect, render_template, request
-from flask import Markup
-from flask import flash
+from flask import Flask, redirect, render_template, request
 from flask import jsonify
 
 import userconfig
