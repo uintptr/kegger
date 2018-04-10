@@ -5,6 +5,7 @@ import json
 
 class Config():
 
+
     CALIBRATION = -11600.00
 
     _config = None
@@ -34,30 +35,34 @@ class Config():
         with open ( self._config_file_Path, "w+" ) as f:
             json.dump ( self._config, f, indent=4 )
 
-    def get_beer_type(self):
-        if ( "beer_type" not in self._config ):
-            return ""
-        return self._config["beer_type"]
-
+    """
+    ""
+    "" Beer Info
+    ""
+    """
     def set_beer_type(self, beer_type ):
         self._config["beer_type"] = beer_type
         self._sync()
 
-    def get_beer_name(self):
-        if ( "beer_name" not in self._config ):
-            return ""
-        return self._config["beer_name"]
+    def get_beer_type(self):
+        if ( "beer_type" not in self._config ):
+            self.set_beer_type("")
+        return self._config["beer_type"]
 
     def set_beer_name(self, beer_name ):
         self._config["beer_name"] = beer_name
         self._sync()
+
+    def get_beer_name(self):
+        if ( "beer_name" not in self._config ):
+            self.set_beer_name("")
+        return self._config["beer_name"]
 
     """
     ""
     "" WEIGHT
     ""
     """
-
     def set_keg_weight(self, weight):
         #
         # Already set in pounds, no need to calibrate

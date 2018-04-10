@@ -12,6 +12,7 @@ from threading import Lock
 
 from flask import Flask, redirect, render_template, request
 from flask import jsonify
+from flask import send_from_directory
 
 import userconfig
 
@@ -136,6 +137,15 @@ def get_level ( config ):
         level = 100
 
     return abs ( int ( level ) )
+
+@app.route('/favicon.ico')
+def favicon():
+
+    file_path = os.path.join(app.root_path, "templates")
+
+    return send_from_directory( file_path,
+                               'favicon.ico',
+                                mimetype='image/vnd.microsoft.icon')
 
 #
 # For the index.html
