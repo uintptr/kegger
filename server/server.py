@@ -70,6 +70,12 @@ def sample_locked(timeout):
         temp = humidity = weight = 0
     except serial.SerialException:
         temp = humidity = weight = 0
+    except ValueError:
+        #
+        # Seen it once. Serial connection dies and didn't return anything
+        # usable
+        #
+        temp = humidity = weight = 0
     finally:
         if ( None != sp ):
             sp.close()
