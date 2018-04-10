@@ -5,6 +5,11 @@
 
 xscreensaver -no-splash&
 
+#
+# Hide the mouse cursor
+#
+unclutter -idle 0&
+
 while(true)
 do
     xterm -e "/home/pi/kegger/ui/console.py -u 30"
