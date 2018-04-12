@@ -2,7 +2,7 @@
 git -C $HOME/kegger/ pull
 
 #
-# Harness for the server
+# Harness for the server. Never seen it crash but it might happen
 #
 while(true)
 do

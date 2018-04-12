@@ -10,6 +10,9 @@ xscreensaver -no-splash&
 #
 unclutter -idle 0&
 
+#
+#
+#
 while(true)
 do
     xterm -e "/home/pi/kegger/ui/console.py -u 30"
