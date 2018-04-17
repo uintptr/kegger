@@ -1,6 +1,6 @@
 # Kegger
 
-Arduino/Raspberry Pi based scale and a ncurses based UI
+Arduino/Raspberry Pi based scale and a retro looking ncurses based UI
 
 ![Alt text](/ui/doc/sc.png)
 

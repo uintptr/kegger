@@ -45,7 +45,7 @@ def sample_locked(timeout):
         sp = serial.Serial ( "/dev/ttyUSB0", 9600 )
 
         #
-        # The loop breaks after a timeout or a
+        # The loop breaks after reading a line or after the timeout
         #
         while ( timeout > time.time() ):
 
@@ -72,8 +72,8 @@ def sample_locked(timeout):
         temp = humidity = weight = 0
     except ValueError:
         #
-        # Seen it once. Serial connection dies and didn't return anything
-        # usable
+        # Seen it once. Serial connection died and didn't return anything
+        # usable ?!
         #
         temp = humidity = weight = 0
     finally:
@@ -89,7 +89,7 @@ def sample(timeout=DEF_SAMPLING_TIMEOUT_SEC):
     weight   = 0
 
     #
-    # Serialize the use of the serial port
+    # Serialize the serial port
     #
     g_mutex.acquire()
 
