@@ -28,21 +28,32 @@ void setup()
 
 void loop()
 {
+
     g_fTemperature  = dht.readTemperature();
     g_fHumidity     = dht.readHumidity();
+
+    if ( true == isnan ( g_fTemperature ) )
+    {
+        g_fTemperature = 0;
+    }
+
+    if ( true == isnan ( g_fHumidity ) )
+    {
+        g_fHumidity = 0;
+    }
 
     scale.power_up();
 
     g_fWeight = scale.read_average(SCALE_SAMPLE_SIZE);
 
+    if ( true == isnan ( g_fWeight ) )
+    {
+        g_fWeight = 0;
+    }
+
     scale.power_down();
 
-    //
-    // Have to cast and compare against 0 because of NaN
-    //
-    if( 0 != ( int ) g_fTemperature      &&
-        0 != ( int ) g_fHumidity  &&
-        0 != ( int ) g_fWeight )
+    if( 0 != g_fWeight )
     {
         //
         // CSV to make it easy to read off the serial line

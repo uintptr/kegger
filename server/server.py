@@ -26,6 +26,7 @@ CONFIG_FILE_NAME    = "config.json"
 DEF_SAMPLE_GRAN             = 300
 DEF_LISTENING_PORT          = 5000
 DEF_SAMPLING_TIMEOUT_SEC    = 30
+DEF_USB_PORT                = "/dev/ttyUSB0"
 
 app = Flask(__name__)
 
@@ -104,10 +105,14 @@ def update_config(config):
 
     (temp,humidity,weight) = sample()
 
-    if ( 0 != temp and 0 != humidity and 0 != weight ):
-        config.set_weight(weight)
+    if ( 0 != temp ):
         config.set_temperature(temp)
+
+    if ( 0 != humidity ):
         config.set_humidity(humidity)
+
+    if ( 0 != weight ):
+        config.set_weight(weight)
 
 def get_level ( config ):
 
@@ -206,10 +211,14 @@ def http_reset():
 
     (temp,humidity,weight) = sample()
 
-    if ( 0 != temp and 0 != humidity and 0 != weight ):
+    if ( 0 != temp ):
         config.set_temperature(temp)
+
+    if ( 0 != humidity ):
         config.set_humidity(humidity)
-        config.set_base_weight(weight)
+
+    if ( 0 != weight ):
+        config.set_weight(weight)
 
     return redirect("/newkeg_2.html", code=302 )
 
@@ -225,9 +234,13 @@ def http_new_keg():
 
     (temp,humidity,weight) = sample()
 
-    if ( 0 != temp and 0 != humidity and 0 != weight ):
+    if ( 0 != temp ):
         config.set_temperature(temp)
+
+    if ( 0 != humidity ):
         config.set_humidity(humidity)
+
+    if ( 0 != weight ):
         config.set_full_weight(weight)
         config.set_weight(weight)
 
@@ -307,6 +320,10 @@ def main():
                         type=int,
                         default=DEF_LISTENING_PORT,
     help="Listening port. Default={}".format(DEF_LISTENING_PORT) )
+
+    parser.add_argument("--device",
+                        type=str,
+    help="Arduino device port. Default={}".format ( DEF_USB_PORT ) )
 
     parser.add_argument("-c",
                         "--config-file",
